@@ -8,7 +8,7 @@ from keras.layers import Embedding, Dense, LSTM
 from keras.models import Sequential
 from keras.preprocessing.sequence import pad_sequences
 
-from data_setup.tokenizer import KrTokenizer
+from tokenizer import KrTokenizer
 
 okt = Okt()
 krt = KrTokenizer()
