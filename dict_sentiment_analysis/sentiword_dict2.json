@@ -1,0 +1,42 @@
+[
+	{
+		"word": "맛있",
+		"polarity": "1"
+	},
+	{
+		"word": "추천",
+		"polarity": "1"
+	},
+	{
+		"word": "맛없",
+		"polarity": "-1"
+	},
+	{
+		"word": "시발",
+		"polarity": "-1"
+	},
+	{
+		"word": "씨발",
+		"polarity": "-1"
+	},
+	{
+		"word": "병신",
+		"polarity": "1"
+	},
+	{
+		"word": "별로",
+		"polarity": "-1"
+	},
+	{
+		"word": "느끼",
+		"polarity": "-1"
+	},
+	{
+		"word": "화남",
+		"polarity": "-1"
+	},
+	{
+		"word": "극찬",
+		"polarity": "1"
+	}
+]
