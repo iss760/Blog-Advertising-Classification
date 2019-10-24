@@ -6,21 +6,21 @@ from datetime import datetime, timedelta
 
 from db_connect import DB
 
-# 100 영화, 문화
-# 101 육아, 결혼
-# 102 상품리뷰
-# 103 여행
-# 104 맛집, 음식
-# 105 IT, 인터넷
-# 106 사회, 정치
-# 107 비즈니스, 경제
-# 108 패션, 미용
-
 
 class Blog_Crawler:
     def __init__(self, web_path):
         self.driver = webdriver.Chrome(web_path)
         self.db = DB()
+        
+        # 100 영화, 문화
+        # 101 육아, 결혼
+        # 102 상품리뷰
+        # 103 여행
+        # 104 맛집, 음식
+        # 105 IT, 인터넷
+        # 106 사회, 정치
+        # 107 비즈니스, 경제
+        # 108 패션, 미용
         self.category_list = {
             '100': 6, '101': 15, '102': 21, '103': 27, '104': 29, '105': 30, '106': 31, '107': 33, '108': 18
         }
