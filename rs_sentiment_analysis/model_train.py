@@ -33,11 +33,11 @@ def load_pickle(file_name='test'):
 
 
 # 부정 데이터 로드
-sql1 = "select contents, score from restaurant.review where score = 1 or score = 2 and not contents = '' order by rand() limit 5000"
+sql1 = "select contents, score from restaurant.review where score = 1 or score = 2 and not contents = '' order by rand() limit 6000"
 source1 = db.data_load(sql1)
 
 # 긍정 데이터 로드
-sql2 = "select contents, score from restaurant.review where score = 4 or score = 5 and not contents = '' order by rand() limit 5000"
+sql2 = "select contents, score from restaurant.review where score = 4 or score = 5 and not contents = '' order by rand() limit 6000"
 source2 = db.data_load(sql2)
 
 source = source1 + source2
