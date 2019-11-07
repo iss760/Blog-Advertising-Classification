@@ -352,8 +352,13 @@ class BCC_NB:
             X_test_tfidf = self.tfidf_transformer.transform(X_test_dtm)
 
             # 분류
-            predicted = mod.predict(X_test_tfidf)  # 테스트 데이터에 대한 예측
+            prediction = mod.predict(X_test_tfidf)  # 테스트 데이터에 대한 예측
 
             # 결과 출력
-            for i, _predicted in enumerate(predicted):
-                print(i, ')    ', _predicted, ': ', self.category_list[int(_predicted)])
+            for i, _prediction in enumerate(prediction):
+                print(i, ')    ', _prediction, ': ', self.category_list[int(_prediction)])
+
+            if len(prediction) == 1:
+                return int(prediction)
+            else:
+                return prediction

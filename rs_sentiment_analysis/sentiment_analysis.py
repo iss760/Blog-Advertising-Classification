@@ -85,5 +85,7 @@ class Sentiment_Analysis:
         for idx, _prediction in zip(idx_data, prediction):
             if _prediction[0] > 0.5:
                 print(idx + 1, ')', '긍정')
+                return 1
             else:
                 print(idx + 1, ')', '부정')
+                return 0
