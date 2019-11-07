@@ -1,6 +1,6 @@
 import time
 from db_connect import DB
-from category_classification_01 import classification_nb
+from category_classification import classification_nb
 
 start = time.time()     # 전체 작업 시작 시간
 

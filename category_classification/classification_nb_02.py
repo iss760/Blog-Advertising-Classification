@@ -17,7 +17,7 @@ from tokenizer import KrTokenizer
 
 
 # 블로그 카테고리 분류 모델 (나이브 베이즈)
-class BCC_NB:
+class BCC_NB_02:
     def __init__(self):
         self.db = DB()
         self.krt = KrTokenizer()

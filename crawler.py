@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from time import sleep
 from random import randint
+import datetime
 from datetime import datetime, timedelta
 
 from db_connect import DB
@@ -24,6 +25,11 @@ class Blog_Crawler:
         self.category_list = {
             '100': 6, '101': 15, '102': 21, '103': 27, '104': 29, '105': 30, '106': 31, '107': 33, '108': 18
         }
+
+    def change_month(self, month):
+        month_word = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        if month in month_word:
+            return month_word.index(month) + 1
 
     # 포스팅의 크롤링 가능한 실제 링크를 반환 하는 함수 (네이버 블로그는 크롤링 가능 링크와 읽기용 링크 따로 존재)
     def real_link_build(self, blogger, posting_index):
@@ -86,9 +92,88 @@ class Blog_Crawler:
                     return
 
             page_number = page_number + 1
+    
+    def get_posting_info(self, url):
+        """
+         :param url: (str) 포스팅 링크 (real_link)
+         :return: (str) 포스팅 본문
+         """
+        blog_link = url
+        blog_link = blog_link.replace("http", "https")
+        blog_xml_link = blog_link.replace("https://", "https://rss.")
+        blog_xml_link = blog_xml_link + str(".xml")
+
+        # blog_url 에서 blogger 추출
+        blogger = blog_link.split('.com/')
+        blogger = blogger[1]
+        try:
+            # RSS 2.0 으로 접근
+            self.driver.get(blog_xml_link)
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+            # RSS 2.0 에서 포스팅들의 정보 수집
+            rss_board = soup.findAll('span', {'class': 'text'})
+            rss_board2 = str(rss_board).split('</span>')
+        except Exception as e:
+            # RSS 2.0 접근 실패
+            print(e)
+            print("RSS 2.0 error : ", blog_link)
+            return
+
+        temp_list = []
+        temp2_list = []
+        # 포스팅 링크 수집 (blog.naver 형식)
+        for line in rss_board2:
+            if blog_link in line:
+                line = line.split('"text">')
+                line = line[1]
+                if line != blog_link:
+                    temp_list.append(line)
+        for i in range(0, len(temp_list), 2):
+            if temp_list[i][0:4] == "http":
+                temp2_list.append(temp_list[i])
+        # 포스팅 링크 수집 (blog.me 형식)
+        if len(temp2_list) is 0:
+            blog_link = 'http://' + str(blogger) + '.blog.me'
+            for line in rss_board2:
+                if blog_link in line:
+                    line = line.split('"text">')
+                    line = line[1]
+                    if line != blog_link:
+                        temp_list.append(line)
+            for i in range(0, len(temp_list), 2):
+                if temp_list[i][0:4] == "http":
+                    temp2_list.append(temp_list[i])
+
+        posting_real_number_ls = []
+        for posting_real_number in temp2_list:
+            posting_real_number = posting_real_number.split(blog_link + str('/'))
+            posting_real_number_ls.append(posting_real_number[1])
+
+        posting_date_ls = []
+        # 포스팅 날짜 수집
+        for line in rss_board2:
+            if "+0900" in line:
+                line = line.split('"text">')
+                line = line[1]
+                posting_date_ls.append(line)
+        posting_date_ls.pop(0)
+
+        # 포스팅 날짜 변환 (ex. Fri, 2018 Jun 07 -> 2018-01-07)
+        for i in range(0, len(posting_date_ls)):
+            posting_date_ls[i] = posting_date_ls[i].split(", ")
+            posting_date_ls[i] = posting_date_ls[i][1]
+            posting_date_ls[i] = posting_date_ls[i].split(" +")
+            posting_date_ls[i] = posting_date_ls[i][0]
+            posting_date_ls[i].strip()
+            posting_date_ls[i] = str(posting_date_ls[i][7:12]) + str(posting_date_ls[i][3:7]) + str(posting_date_ls[i][0:3])
+            posting_date_ls[i] = datetime.date(int(posting_date_ls[i][0:4]), 
+                                         int(self.change_month(posting_date_ls[i][5:8])), int(posting_date_ls[i][9:11]))
+
+        return posting_real_number_ls, posting_date_ls
 
     # 포스팅의 본문 수집 함수
-    def body_crawler(self, url):
+    def get_posting_body(self, url):
         """
         :param url: (str) 포스팅 실제 링크 (real_link)
         :return: (str) 포스팅 본문
@@ -132,6 +217,50 @@ class Blog_Crawler:
             pass
 
         return posting_full_contents
+
+    def get_posting_feature(self, url):
+        """
+        :param url: (str) 포스팅 실제 링크 (real_link)
+        :return: (str) 포스팅 본문
+        """
+        # 포스팅 본문으로 접근
+        self.driver.get(url)
+        posting_page = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+        # 포스팅 길이 수집
+        posting_length = len(self.get_posting_body(url))
+
+        image_count = 0
+        video_count = 0
+        map_count = 0
+        # 포스팅 이미지 수 수집
+        try:
+            image = posting_page.findAll("div", {"class": "se-component se-image se-l-default"})
+            image_count = len(image)
+            if image_count == 0:
+                image = posting_page.findAll("div", {"class": "se_component se_image default"})
+                image_count = len(image)
+                if image_count == 0:
+                    image = posting_page.findAll("img", {"class": "_photoImage"})
+                    image_count = len(image)
+        except Exception as e:
+            print(e)
+
+        # 포스팅 동영상의 수 수집
+        try:
+            video = posting_page.findAll("div", {"class": "se-component se-video se-l-default"})
+            video_count = len(video)
+        except Exception as e:
+            print(e)
+
+        # 포스팅 지도의 수 수집
+        try:
+            map = posting_page.findAll("div", {"class": "se-component se-placesMap se-l-default"})
+            map_count = len(map)
+        except Exception as e:
+            print(e)
+
+        return posting_length, image_count, video_count, map_count
 
 class Restaurant_Review_Crawler:
     def __init__(self, web_path):
